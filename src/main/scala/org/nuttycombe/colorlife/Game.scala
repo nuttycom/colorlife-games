@@ -7,15 +7,17 @@
 
 package org.nuttycombe.colorlife
 
+import java.awt._
 
-class Game(x:Int, y:Int) {
-  val cells = new Array[Cell](x * y)
-  
-  for (i <- 0 until x) {
-      for (j <- 0 until y) {
-          cells(i * x + j) = new Cell(x, y, null)
-      }
-  }
+class Game(x:Int, y:Int, earthSize:Int) {
+    val cells = new Array[Cell](x * y)
 
+    for (i <- 0 until x) {
+        for (j <- 0 until y) {
+            cells(i * y + j) = new Cell(x, y, Color.BLACK)
+        }
+    }
+
+    
 
 }

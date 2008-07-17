@@ -4,5 +4,7 @@
 
 package org.nuttycombe.colorlife
 
-class Cell(x:Integer, y:Integer, var color:Color) {
+import java.awt._
+
+class Cell(val x:Int, val y:Int, var color:Color) {
 }
