@@ -15,8 +15,6 @@ class BoardComponent(game:Game, var cellSize:Int) extends Component {
     implicit def wrapCell(cell:Cell) = new CellFace(cellSize, cell);
 
     override def paint(g:Graphics) {
-        game.cells.foreach {cell =>
-            cell.draw(g)
-        }
+        game.cells.foreach {_.foreach {_.draw(g)}}
     }
 }
