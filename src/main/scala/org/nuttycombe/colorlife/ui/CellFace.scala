@@ -9,7 +9,7 @@ package org.nuttycombe.colorlife.ui
 
 import java.awt._
 
-class CellFace(size:Int, cell:Cell) {
+class CellFace(val size: Int, val cell: Cell) {
 
     def draw(g:Graphics) = {
         g.setColor(Color.BLACK)

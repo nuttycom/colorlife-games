@@ -18,12 +18,11 @@ class GUI(game:Game) extends UI(game) {
 
     frame.add(board)
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
-//    frame.addWindowListener(new WindowAdapter() {
-//        override def windowOpened(e:WindowEvent) = frame.setExtendedState(Frame.MAXIMIZED_BOTH)
-//    });
+    frame.addWindowListener(new WindowAdapter() {
+        override def windowOpened(e:WindowEvent) = frame.setExtendedState(Frame.MAXIMIZED_BOTH)
+    });
 
     //Display the window.
     frame.pack();
     frame.setVisible(true);
-    frame.setExtendedState(Frame.MAXIMIZED_BOTH)
 }
