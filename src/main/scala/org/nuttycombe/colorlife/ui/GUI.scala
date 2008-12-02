@@ -1,18 +1,14 @@
 /*
  * GUI.scala
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
  */
 
 package org.nuttycombe.colorlife.ui
-import org.nuttycombe.colorlife._
 
 import java.awt._
 import javax.swing._
 import java.awt.event._
 
-class GUI(game:Game) extends UI(game) {
+trait GUI extends UI {
     val frame:JFrame = new JFrame("ColorLife Colonize Earth!")
     val board:BoardComponent = new BoardComponent(game, 20)
 
@@ -25,4 +21,22 @@ class GUI(game:Game) extends UI(game) {
     //Display the window.
     frame.pack();
     frame.setVisible(true);
+
+    board.addKeyListener(new KeyListener {
+            override def keyPressed(ev:KeyEvent) = {}
+            override def keyReleased(ev:KeyEvent) = {}
+
+            override def keyTyped(ev:KeyEvent) = {
+                ev.getKeyChar match {
+                    case 'j' => moveLocDown
+                    case 'k' => moveLocUp
+                    case 'h' => moveLocLeft
+                    case 'l' => moveLocRight
+                    case ' ' => dropSpore
+                    case n if (1 until 8).contains(n.asDigit) => journey(n.asDigit)
+                    case '\r' => turnComplete
+                }
+            }
+    });
+
 }

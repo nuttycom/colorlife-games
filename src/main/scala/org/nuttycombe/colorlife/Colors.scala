@@ -1,21 +1,15 @@
 /*
  * Color.scala
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
  */
 
 package org.nuttycombe.colorlife
 
 object Colors {
     def blend(colors : Seq[java.awt.Color]) : java.awt.Color = {
-        val components = colors.foldLeft(Array.make(3, 0.0f)) {(sum, c) =>
-            sum(0) = sum(0) + c.getRed()
-            sum(1) = sum(1) + c.getGreen()
-            sum(2) = sum(2) + c.getBlue()
-            sum
-        }.map(_ / colors.size)
+        val rgb = colors.foldLeft((0.0f, 0.0f, 0.0f)) {(sum, c) =>
+            (sum._1 + c.getRed(), sum._2 + c.getGreen(), sum._3 + c.getBlue())
+        }
 
-        new java.awt.Color(components(0), components(1), components(2));
+        new java.awt.Color(rgb._1 / colors.size, rgb._2 / colors.size, rgb._3 / colors.size)
     }
 }

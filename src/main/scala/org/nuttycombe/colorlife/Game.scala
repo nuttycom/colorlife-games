@@ -1,26 +1,78 @@
 /*
- * Board.scala
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
+ * Game.scala
  */
 
 package org.nuttycombe.colorlife
 
 import java.awt._
-import scala.collection.jcl._
+import scala.collection.mutable._
 
-abstract class Game(val x:Int, val y:Int) {
-    val cells = new Array[Array[Cell]](x,y)
-    var cellsToEvaluate = new HashSet[Cell]()
+abstract class Game(val xsize:Int, val ysize:Int) {
+    case class Cell(x:Int, y:Int) {
+        lazy val neighbors : Seq[Cell] = for (i <- Math.max(0, x-1) until Math.min(x+1, xsize-1);
+                                              j <- Math.max(0, y-1) until Math.min(y+1, ysize-1);
+                                              if (!(i == x && j == y))) yield cells(i)(j)
 
-    for (i <- 0 until x; j <- 0 until y) {
-        cells(i)(j) = buildInitialCell(i,j)
+        private var c : Color = Color.BLACK
+        private var nextColor : Color = Color.BLACK
+
+        def color = c
+        def color_=(c:Color) = {
+            setColor(c)
+        }
+
+        private def setColor(c:Color) = {
+            if (c != this.c) {
+                Game.this.cellsToEvaluate + this ++= this.neighbors
+                this.c = c
+            }
+        }
+
+        def evaluate = {
+            val liveNeighbors = neighbors.filter(_.c != Color.BLACK)
+            this.nextColor = if (liveNeighbors.size < 2 || liveNeighbors.size > 3) {
+                Color.BLACK
+            } else if (liveNeighbors.size == 3 && c == Color.BLACK) {
+                val colorCounts = liveNeighbors.foldLeft(Map.empty[Color,Int]) {(counts, n) =>
+                    counts.put(n.c, counts.getOrElseUpdate(n.c, 0) + 1)
+                    counts
+                }
+
+                if (colorCounts.size < 3) {
+                    colorCounts.foldLeft((Color.BLACK, 0)) {(max, entry) =>
+                        if (entry._2 > max._2) entry;
+                        else max;
+                    }._1
+                } else {
+                    Colors.blend(liveNeighbors.map(_.c))
+                }
+            } else {
+                c
+            }
+        }
+
+        def evolve = {
+            setColor(this.nextColor)
+        }
     }
 
-    def buildInitialCell(i:Int, j:Int):Cell
+    val cells : Array[Array[Cell]] = Array.fromFunction(buildInitialCell(_,_))(xsize, ysize)
+    private var cellsToEvaluate = new HashSet[Cell]()
 
-    def applyLifeRule = {
-        cellsToEvaluate.foreach {_.evaluate}
+    def buildInitialCell(x:Int, y:Int):Cell
+
+    def handleEvent(ev:GameEvent)
+
+
+    protected def applyLifeRule = {
+        cellsToEvaluate.foreach(_.evaluate)
+        cellsToEvaluate = new HashSet[Cell]
+        cells.foreach(_.foreach(_.evolve))
     }
 }
+
+trait GameEvent
+
+case class DropSporeEvent(x:Int, y:Int) extends GameEvent
+case class JourneyEvent(turns:Int) extends GameEvent
+case class TurnCompleteEvent() extends GameEvent

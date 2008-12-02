@@ -1,22 +1,27 @@
 /*
  * CellFace.scala
- *
- * To change this template, choose Tools | Template Manager
- * and open the template in the editor.
  */
 
 package org.nuttycombe.colorlife.ui
 
-import java.awt._
+import java.awt.Graphics
+import java.awt.Color
 
-class CellFace(val size: Int, val cell: Cell) {
+class CellFace(size: Int, cell: Game#Cell) {
+    import cell._
 
     def draw(g:Graphics) = {
         g.setColor(Color.BLACK)
-        if (cell.x % 10 == 0 && cell.y % 10 == 0) cell.neighbors.foreach {_.color = Color.RED}
-        g.drawRect(cell.x * size, cell.y * size, size, size)
-        g.setColor(cell.color)
-        g.fillRect(cell.x * size + 1, cell.y * size + 1, size - 2, size - 2)
-    }
+        g.drawRect(x * size, y * size, size, size)
+        g.setColor(color)
+        g.fillRect(x * size + 1, y * size + 1, size - 2, size - 2)
 
+        //handle special cell type stuff
+        cell match {
+            case _ : ColonizeEarth#EarthCell => {
+                    g.setColor(Color.LIGHT_GRAY)
+                    g.drawRect(x * size, y * size, size, size)
+            }
+        }
+    }
 }
