@@ -31,4 +31,8 @@ trait ColonizeEarthGUI extends ColonizeEarthUI with GUI[ColonizeEarthGame] {
             case n if (1 until 8).contains(n.asDigit) => journey(n.asDigit)
         }
     }
+
+    override def update(ev:UIEvent) {
+
+    }
 }

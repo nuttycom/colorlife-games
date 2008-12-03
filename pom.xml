@@ -35,7 +35,7 @@
                 <groupId>org.scala-tools</groupId>
                 <artifactId>maven-scala-plugin</artifactId>
                 <configuration>
-                    <mainClass>org.nuttycombe.colorlife.ColorLife</mainClass>
+                    <mainClass>org.nuttycombe.colorlife.ce.ColonizeEarth</mainClass>
                 </configuration>
                 <executions>
                     <execution>
