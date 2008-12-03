@@ -7,7 +7,10 @@ package org.nuttycombe.colorlife
 import java.awt._
 import scala.collection.mutable._
 
-abstract class Game(val xsize:Int, val ysize:Int) {
+abstract class Game[T <: Game[T]](val xsize:Int, val ysize:Int) {
+    self : T =>
+    type GameType = T
+
     case class Cell(x:Int, y:Int) {
         lazy val neighbors : Seq[Cell] = for (i <- Math.max(0, x-1) until Math.min(x+1, xsize-1);
                                               j <- Math.max(0, y-1) until Math.min(y+1, ysize-1);
@@ -61,8 +64,7 @@ abstract class Game(val xsize:Int, val ysize:Int) {
 
     def buildInitialCell(x:Int, y:Int):Cell
 
-    def handleEvent(ev:GameEvent)
-
+    def initUI(ui:UI[GameType])
 
     protected def applyLifeRule = {
         cellsToEvaluate.foreach(_.evaluate)
@@ -72,7 +74,4 @@ abstract class Game(val xsize:Int, val ysize:Int) {
 }
 
 trait GameEvent
-
-case class DropSporeEvent(x:Int, y:Int) extends GameEvent
-case class JourneyEvent(turns:Int) extends GameEvent
 case class TurnCompleteEvent() extends GameEvent
