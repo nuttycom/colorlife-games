@@ -9,7 +9,7 @@ import java.awt.Graphics
 import java.awt.Color
 import java.awt.event._
 
-trait ColonizeEarthGUI extends ColonizeEarthUI with GUI[ColonizeEarthGame] {
+trait ColonizeEarthGUI extends ColonizeEarthController with GUI[ColonizeEarthGame] {
     override type CellFaceType = ColonizeEarthCellFace
 
     class ColonizeEarthCellFace(size:Int, cell:ColonizeEarthGame#Cell) extends CellFace(size, cell) {
@@ -21,7 +21,7 @@ trait ColonizeEarthGUI extends ColonizeEarthUI with GUI[ColonizeEarthGame] {
             //handle special cell type stuff
             cell match {
                 case ec : ColonizeEarthGame#EarthCell => {
-                        g.setColor(Color.LIGHT_GRAY)
+                        g.setColor(Color.RED)
                         g.drawRect(x * size, y * size, size-1, size-1)
                     }
                 case _ =>
@@ -39,7 +39,7 @@ trait ColonizeEarthGUI extends ColonizeEarthUI with GUI[ColonizeEarthGame] {
         }
     }
 
-    override def update(ev:UIEvent) {
+    override def update(ev:GameEvent) {
 
     }
 }

@@ -5,7 +5,9 @@
 package org.nuttycombe.colorlife
 
 import java.awt._
-import scala.collection.mutable._
+import scala.collection._
+import scala.collection.mutable.HashSet
+import scala.collection.mutable.Map
 
 abstract class Game[T <: Game[T]](val xsize:Int, val ysize:Int) {
     self : T =>
@@ -62,16 +64,23 @@ abstract class Game[T <: Game[T]](val xsize:Int, val ysize:Int) {
     val cells : Array[Array[Cell]] = Array.fromFunction(buildInitialCell(_,_))(xsize, ysize)
     private var cellsToEvaluate = new HashSet[Cell]()
 
+    case class CellUpdateEvent(cells:Set[Cell]) extends GameEvent
+    case class TurnCompleteEvent() extends ControllerEvent
+
     def buildInitialCell(x:Int, y:Int):Cell
 
-    def initUI(ui:UI[GameType])
+    def initController(cont:Controller[GameType]) = {
+        cont.addHandler({case TurnCompleteEvent() => Some(CellUpdateEvent(applyLifeRule))})
+    }
 
-    protected def applyLifeRule = {
+    protected def applyLifeRule : Set[Cell] = {
+        val evaluated = cellsToEvaluate
         cellsToEvaluate.foreach(_.evaluate)
         cellsToEvaluate = new HashSet[Cell]
         cells.foreach(_.foreach(_.evolve))
+        evaluated
     }
 }
 
 trait GameEvent
-case class TurnCompleteEvent() extends GameEvent
+trait ControllerEvent

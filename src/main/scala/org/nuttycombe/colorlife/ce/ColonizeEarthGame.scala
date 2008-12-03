@@ -19,6 +19,7 @@ class ColonizeEarthGame(xsize:Int, ysize:Int, earthSize:Int) extends Game[Coloni
     }
 
     var players : List[Player] = Nil
+    var currentPlayer : Player = _
 
     def buildInitialCell(x:Int, y:Int):Cell = {
         if (abs(x - xsize/2f) < earthSize/2f && abs(y - ysize/2f) < earthSize/2f) {
@@ -28,10 +29,15 @@ class ColonizeEarthGame(xsize:Int, ysize:Int, earthSize:Int) extends Game[Coloni
         }
     }
 
-    override def initUI(ui:UI[GameType]) = {
+    case class DropSporeEvent(x:Int, y:Int) extends ControllerEvent
+    case class JourneyEvent(turns:Int) extends ControllerEvent
 
+    override def initController(cont:Controller[GameType]) = {
+        super.initController(cont)
+        cont.addHandler({
+                case DropSporeEvent(x, y) => cells(x)(y).color = currentPlayer.color; Some(CellUpdateEvent(Set(cells(x)(y))))
+                case JourneyEvent(turns) => None
+            })
     }
 }
 
-case class DropSporeEvent(x:Int, y:Int) extends GameEvent
-case class JourneyEvent(turns:Int) extends GameEvent

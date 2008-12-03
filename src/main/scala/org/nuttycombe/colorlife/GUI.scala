@@ -8,7 +8,7 @@ import java.awt._
 import javax.swing._
 import java.awt.event._
 
-trait GUI[T <: Game[T]] extends UI[T] {
+trait GUI[T <: Game[T]] extends Controller[T] {
     type GameType = T
     type CellFaceType <: CellFace
 
