@@ -10,8 +10,9 @@ import java.awt.event._
 
 trait GUI[T <: Game[T]] extends UI[T] {
     type GameType = T
+    type CellFaceType <: CellFace
 
-    class CellFace[GameType](size: Int, cell: Game[GameType]#Cell) {
+    class CellFace(size:Int, cell:GameType#Cell) {
         import cell._
 
         def draw(g:Graphics) = {
@@ -22,8 +23,10 @@ trait GUI[T <: Game[T]] extends UI[T] {
         }
     }
 
-    class BoardComponent(game: Game[GameType], cellSize: Int) extends Component {
-        implicit def decorate(cell: game.Cell) = new CellFace[GameType](cellSize, cell);
+    def createCellFace(size:Int, cell:GameType#Cell):CellFaceType
+
+    class BoardComponent(game: GameType, cellSize: Int) extends Component {
+        implicit def decorate(cell: game.Cell) = createCellFace(cellSize, cell);
 
         override def paint(g:Graphics) {
             game.cells.foreach(_.foreach(_.draw(g)))
