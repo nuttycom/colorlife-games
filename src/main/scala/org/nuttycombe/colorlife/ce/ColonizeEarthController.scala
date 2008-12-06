@@ -13,4 +13,8 @@ abstract class ColonizeEarthController(game: ColonizeEarthGame) extends Controll
 
     def dropSpore = doEvent(DropSporeEvent(locx, locy))
     def journey(length:Int) = doEvent(JourneyEvent(length))
+
+    def getPlayers : Seq[Player]
+
+    override def start = game.bind(this)
 }

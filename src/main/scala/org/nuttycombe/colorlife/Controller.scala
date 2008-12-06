@@ -30,4 +30,6 @@ abstract class Controller[T <: Game[T]](val game:T) {
     }
 
     def update(ev:GameEvent)
+
+    def start
 }

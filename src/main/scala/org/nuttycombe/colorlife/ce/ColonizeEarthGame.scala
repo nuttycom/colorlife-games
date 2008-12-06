@@ -8,17 +8,15 @@ import java.awt.Color
 import Math._
 
 class ColonizeEarthGame(xsize:Int, ysize:Int, earthSize:Int) extends Game[ColonizeEarthGame](xsize, ysize) {
-    case class Player(name:String, color:Color) {
-        var seeds : Int = 0
-        var journeyRemaining : Int = 0
-    }
+    type GameType = ColonizeEarthGame
+    type ControllerType = ColonizeEarthController
 
     class EarthCell(x:Int, y:Int) extends Cell(x,y) {
         //earth cells cannot have color set externally
         override def color_=(c:Color) = {}
     }
 
-    var players : List[Player] = Nil
+    var players : Seq[Player] = _
     var currentPlayer : Player = _
 
     def buildInitialCell(x:Int, y:Int):Cell = {
@@ -32,12 +30,21 @@ class ColonizeEarthGame(xsize:Int, ysize:Int, earthSize:Int) extends Game[Coloni
     case class DropSporeEvent(x:Int, y:Int) extends ControllerEvent
     case class JourneyEvent(turns:Int) extends ControllerEvent
 
-    override def initController(cont:Controller[GameType]) = {
-        super.initController(cont)
+    override def bind(cont:ColonizeEarthController) = {
+        super.bind(cont)
         cont.addHandler({
-                case DropSporeEvent(x, y) => cells(x)(y).color = currentPlayer.color; Some(CellUpdateEvent(Set(cells(x)(y))))
+                case DropSporeEvent(x, y) =>
+                        cells(x)(y).color = currentPlayer.color;
+                        Some(CellUpdateEvent(Set(cells(x)(y))))
                 case JourneyEvent(turns) => None
             })
+
+        players = cont.getPlayers
     }
+}
+
+case class Player(name:String, color:Color) {
+    var seeds : Int = 0
+    var journeyRemaining : Int = 0
 }
 

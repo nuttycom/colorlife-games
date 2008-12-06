@@ -11,7 +11,8 @@ import scala.collection.mutable.Map
 
 abstract class Game[T <: Game[T]](val xsize:Int, val ysize:Int) {
     self : T =>
-    type GameType = T
+    type GameType <: T
+    type ControllerType <: Controller[GameType]
 
     case class Cell(x:Int, y:Int) {
         lazy val neighbors : Seq[Cell] = for (i <- Math.max(0, x-1) until Math.min(x+1, xsize-1);
@@ -69,7 +70,7 @@ abstract class Game[T <: Game[T]](val xsize:Int, val ysize:Int) {
 
     def buildInitialCell(x:Int, y:Int):Cell
 
-    def initController(cont:Controller[GameType]) = {
+    def bind(cont:ControllerType) = {
         cont.addHandler({case TurnCompleteEvent() => Some(CellUpdateEvent(applyLifeRule))})
     }
 
