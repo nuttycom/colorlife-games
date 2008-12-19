@@ -18,7 +18,7 @@ abstract class Controller[T <: Game[T]](val game:T) {
     def turnComplete = doEvent(TurnCompleteEvent())
 
     def addHandler(f:PartialFunction[ControllerEvent, Option[GameEvent]]) {
-        eventHandlers = f :: eventHandlers
+        eventHandlers += f
     }
 
     def doEvent(ev:ControllerEvent) {

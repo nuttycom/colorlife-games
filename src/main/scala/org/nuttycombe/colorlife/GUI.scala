@@ -12,56 +12,71 @@ trait GUI[T <: Game[T]] extends Controller[T] {
     type GameType = T
     type CellFaceType <: CellFace
 
-    class CellFace(size:Int, cell:GameType#Cell) {
-        import cell._
-
-        def draw(g:Graphics) = {
-            g.setColor(Color.BLACK)
-            g.drawRect(x * size, y * size, size, size)
-            g.setColor(color)
-            g.fillRect(x * size + 1, y * size + 1, size - 2, size - 2)
-        }
-    }
-
-    def createCellFace(size:Int, cell:GameType#Cell):CellFaceType
-
-    class BoardComponent(game: GameType, cellSize: Int) extends Component {
-        implicit def decorate(cell: game.Cell) = createCellFace(cellSize, cell);
-
-        override def paint(g:Graphics) {
-            game.cells.foreach(_.foreach(_.draw(g)))
-        }
-    }
-
     object frame extends JFrame("ColorLife Colonize Earth!")
-    object board extends BoardComponent(game, 20)
+    object board extends BoardComponent(game)
 
-    frame.add(board)
+    frame.getContentPane.add(board)
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
     frame.addWindowListener(new WindowAdapter() {
-        override def windowOpened(e:WindowEvent) = frame.setExtendedState(Frame.MAXIMIZED_BOTH)
+        override def windowOpened(e:WindowEvent) {
+            frame.setExtendedState(Frame.MAXIMIZED_BOTH)
+        }
+    });
+
+    //add handlers for key events
+    board.addKeyListener(new KeyListener {
+            override def keyPressed(ev:KeyEvent) {}
+            override def keyReleased(ev:KeyEvent) {}
+
+            override def keyTyped(ev:KeyEvent) {
+                handleKeyTyped(ev)
+            }
     });
 
     //Display the window.
     frame.pack();
     frame.setVisible(true);
 
-    board.addKeyListener(new KeyListener {
-            override def keyPressed(ev:KeyEvent) = {}
-            override def keyReleased(ev:KeyEvent) = {}
+    class BoardComponent(game: GameType) extends JComponent {
+        override def paint(g:Graphics) {
+            val xsize = (frame.getWidth - 20) / game.xsize
+            val ysize = (frame.getHeight - 20) / game.ysize
+            implicit def decorate(cell: game.Cell) = createCellFace(xsize, ysize, cell);
 
-            override def keyTyped(ev:KeyEvent) = {
-                handleKeyTyped(ev)
-            }
-    });
+            game.cells.foreach(_.foreach(_.draw(g)))
+        }
+    }
 
-    def handleKeyTyped(ev:KeyEvent) = {
+    class CellFace(xsize: Int, ysize: Int, cell: GameType#Cell) {
+        import cell._
+        val xloc = x * xsize
+        val yloc = y * ysize
+
+        def draw(g:Graphics) {
+            drawCell(g, frame.getBackground, cell.color)
+        }
+
+        def drawCell(g: Graphics, outline : Color, fill : Color) {
+            g.setColor(outline)
+            g.drawRoundRect(xloc, yloc, xsize - 1, ysize - 1, 3, 3)
+            g.setColor(fill)
+            g.fillRoundRect(xloc + 1, yloc + 1, xsize - 2, ysize - 2, 3, 3)
+        }
+    }
+
+    def createCellFace(xsize: Int, ysize: Int, cell: GameType#Cell): CellFaceType
+    def handleKeyTyped(ev:KeyEvent) {
         ev.getKeyChar match {
-            case 'j' => moveLocDown
-            case 'k' => moveLocUp
-            case 'h' => moveLocLeft
-            case 'l' => moveLocRight
+            case 'j' => changeActiveCell(moveLocDown)
+            case 'k' => changeActiveCell(moveLocUp)
+            case 'h' => changeActiveCell(moveLocLeft)
+            case 'l' => changeActiveCell(moveLocRight)
             case '\r' => turnComplete
         }
+    }
+
+    private def changeActiveCell(f: => Unit) {
+        f 
+        board.repaint()
     }
 }

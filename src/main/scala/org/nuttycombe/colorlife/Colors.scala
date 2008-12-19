@@ -5,7 +5,7 @@
 package org.nuttycombe.colorlife
 
 object Colors {
-    def blend(colors : Seq[java.awt.Color]) : java.awt.Color = {
+    def blend(colors : Seq[java.awt.Color]) = {
         val rgb = colors.foldLeft((0.0f, 0.0f, 0.0f)) {(sum, c) =>
             (sum._1 + c.getRed(), sum._2 + c.getGreen(), sum._3 + c.getBlue())
         }

@@ -15,24 +15,18 @@ import scala.util.Random
 trait ColonizeEarthGUI extends ColonizeEarthController with GUI[ColonizeEarthGame] {
     override type CellFaceType = ColonizeEarthCellFace
 
-    class ColonizeEarthCellFace(size:Int, cell:ColonizeEarthGame#Cell) extends CellFace(size, cell) {
+    class ColonizeEarthCellFace(xsize: Int, ysize: Int, cell: ColonizeEarthGame#Cell) extends CellFace(xsize, ysize, cell) {
         import cell._
 
-        override def draw(g:Graphics) = {
-            super.draw(g)
-
-            //handle special cell type stuff
+        override def draw(g:Graphics) {
             cell match {
-                case ec : ColonizeEarthGame#EarthCell => {
-                        g.setColor(Color.RED)
-                        g.drawRect(x * size, y * size, size-1, size-1)
-                    }
-                case _ =>
+                case ec : ColonizeEarthGame#EarthCell => drawCell(g, Color.WHITE, color)
+                case _ => super.draw(g)
             }
         }
     }
 
-    override def createCellFace(size:Int, cell:GameType#Cell) = new ColonizeEarthCellFace(size, cell)
+    override def createCellFace(xsize: Int, ysize: Int, cell:GameType#Cell) = new ColonizeEarthCellFace(xsize, ysize, cell)
 
     override def handleKeyTyped(ev:KeyEvent) = {
         super.handleKeyTyped(ev)

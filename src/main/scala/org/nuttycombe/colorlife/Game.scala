@@ -4,9 +4,8 @@
 
 package org.nuttycombe.colorlife
 
-import java.awt._
+import java.awt.Color
 import scala.collection._
-import scala.collection.mutable.HashSet
 import scala.collection.mutable.Map
 
 abstract class Game[T <: Game[T]](val xsize:Int, val ysize:Int) {
@@ -29,7 +28,8 @@ abstract class Game[T <: Game[T]](val xsize:Int, val ysize:Int) {
 
         private def setColor(c:Color) = {
             if (c != this.c) {
-                Game.this.cellsToEvaluate + this ++= this.neighbors
+                cellsToEvaluate ++= neighbors
+                cellsToEvaluate += this
                 this.c = c
             }
         }
@@ -40,15 +40,13 @@ abstract class Game[T <: Game[T]](val xsize:Int, val ysize:Int) {
                 Color.BLACK
             } else if (liveNeighbors.size == 3 && c == Color.BLACK) {
                 val colorCounts = liveNeighbors.foldLeft(Map.empty[Color,Int]) {(counts, n) =>
-                    counts.put(n.c, counts.getOrElseUpdate(n.c, 0) + 1)
+                    counts.put(n.c, counts.getOrElse(n.c, 0) + 1)
                     counts
                 }
 
                 if (colorCounts.size < 3) {
-                    colorCounts.foldLeft((Color.BLACK, 0)) {(max, entry) =>
-                        if (entry._2 > max._2) entry;
-                        else max;
-                    }._1
+                    //find the color with the maximum count
+                    colorCounts.reduceLeft((a, b) => if (b._2 > a._2) b else a)._1
                 } else {
                     Colors.blend(liveNeighbors.map(_.c))
                 }
@@ -59,27 +57,29 @@ abstract class Game[T <: Game[T]](val xsize:Int, val ysize:Int) {
 
         def evolve = {
             setColor(this.nextColor)
+            this
         }
     }
 
     val cells : Array[Array[Cell]] = Array.fromFunction(buildInitialCell(_,_))(xsize, ysize)
-    private var cellsToEvaluate = new HashSet[Cell]()
+    private var cellsToEvaluate = Set.empty[Cell]
 
-    case class CellUpdateEvent(cells:Set[Cell]) extends GameEvent
+    case class CellUpdateEvent(cells: Set[Cell]) extends GameEvent
     case class TurnCompleteEvent() extends ControllerEvent
 
     def buildInitialCell(x:Int, y:Int):Cell
 
     def bind(cont:ControllerType) = {
-        cont.addHandler({case TurnCompleteEvent() => Some(CellUpdateEvent(applyLifeRule))})
+        cont.addHandler {
+            case TurnCompleteEvent() => Some(CellUpdateEvent(applyLifeRule))
+        }
     }
 
     protected def applyLifeRule : Set[Cell] = {
         val evaluated = cellsToEvaluate
         cellsToEvaluate.foreach(_.evaluate)
-        cellsToEvaluate = new HashSet[Cell]
-        cells.foreach(_.foreach(_.evolve))
-        evaluated
+        cellsToEvaluate = Set.empty[Cell]
+        evaluated.map(_.evolve)
     }
 }
 

@@ -30,7 +30,7 @@ class ColonizeEarthGame(xsize:Int, ysize:Int, earthSize:Int) extends Game[Coloni
     case class DropSporeEvent(x:Int, y:Int) extends ControllerEvent
     case class JourneyEvent(turns:Int) extends ControllerEvent
 
-    override def bind(cont:ColonizeEarthController) = {
+    override def bind(cont:ColonizeEarthController) {
         super.bind(cont)
         cont.addHandler({
                 case DropSporeEvent(x, y) =>
