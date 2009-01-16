@@ -4,10 +4,11 @@
 
 package org.nuttycombe.colorlife.ce
 
-object ColonizeEarth extends Application {
-    val game = new ColonizeEarthGame(33, 25, 3)
-    val ui = new ColonizeEarthController(game) with ColonizeEarthGUI
-
-    ui.start
+object ColonizeEarth {
+    def main(argv: Array[String]) {
+        val game = new ColonizeEarthGame(33, 25, 3)
+        val controller = new ColonizeEarthController(game) with ColonizeEarthGUI
+        controller.start
+    }
 }
 

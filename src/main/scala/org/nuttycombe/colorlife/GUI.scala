@@ -67,16 +67,16 @@ trait GUI[T <: Game[T]] extends Controller[T] {
     def createCellFace(xsize: Int, ysize: Int, cell: GameType#Cell): CellFaceType
     def handleKeyTyped(ev:KeyEvent) {
         ev.getKeyChar match {
-            case 'j' => changeActiveCell(moveLocDown)
-            case 'k' => changeActiveCell(moveLocUp)
-            case 'h' => changeActiveCell(moveLocLeft)
-            case 'l' => changeActiveCell(moveLocRight)
+            case 'j' => changeActiveCell(moveLocDown _)
+            case 'k' => changeActiveCell(moveLocUp _)
+            case 'h' => changeActiveCell(moveLocLeft _)
+            case 'l' => changeActiveCell(moveLocRight _)
             case '\r' => turnComplete
         }
     }
 
-    private def changeActiveCell(f: => Unit) {
-        f 
+    private def changeActiveCell(f: () => Unit) {
+        f()
         board.repaint()
     }
 }
