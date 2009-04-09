@@ -24,7 +24,7 @@ trait GUI[T <: Game[T]] extends Controller[T] {
     });
 
     //add handlers for key events
-    board.addKeyListener(new KeyListener {
+    frame.addKeyListener(new KeyListener {
             override def keyPressed(ev:KeyEvent) {}
             override def keyReleased(ev:KeyEvent) {}
 
@@ -51,20 +51,24 @@ trait GUI[T <: Game[T]] extends Controller[T] {
         import cell._
         val xloc = x * xsize
         val yloc = y * ysize
+        val borderColor: Color = frame.getBackground
 
         def draw(g:Graphics) {
-            drawCell(g, frame.getBackground, cell.color)
+            drawCell(g, borderColor, cell.color)
         }
 
-        def drawCell(g: Graphics, outline : Color, fill : Color) {
-            g.setColor(outline)
+        final def drawCell(g: Graphics, outline : Color, fill : Color) {
+            g.setColor(if (highlight) fill else outline)
             g.drawRoundRect(xloc, yloc, xsize - 1, ysize - 1, 3, 3)
-            g.setColor(fill)
+            g.setColor(if (highlight) outline else fill)
             g.fillRoundRect(xloc + 1, yloc + 1, xsize - 2, ysize - 2, 3, 3)
         }
+
+        private def highlight = x == locx && y == locy
     }
 
     def createCellFace(xsize: Int, ysize: Int, cell: GameType#Cell): CellFaceType
+
     def handleKeyTyped(ev:KeyEvent) {
         ev.getKeyChar match {
             case 'j' => changeActiveCell(moveLocDown _)
