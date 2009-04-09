@@ -11,10 +11,10 @@ abstract class Controller[+T <: Game[T]](val game:T) {
     protected var locy:Int = game.ysize / 2
     private var eventHandlers : List[PartialFunction[ControllerEvent,Option[GameEvent]]] = Nil
 
-    def moveLocDown = locx -= 1
-    def moveLocUp = locx += 1
-    def moveLocLeft = locy -= 1
-    def moveLocRight = locy += 1
+    def moveLocDown = locy += 1
+    def moveLocUp = locy -= 1
+    def moveLocLeft = locx -= 1
+    def moveLocRight = locx += 1
     def turnComplete = doEvent(TurnCompleteEvent())
 
     def addHandler(f:PartialFunction[ControllerEvent, Option[GameEvent]]) {
