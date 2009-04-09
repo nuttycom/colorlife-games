@@ -4,7 +4,7 @@
 
 package org.nuttycombe.colorlife
 
-abstract class Controller[T <: Game[T]](val game:T) {
+abstract class Controller[+T <: Game[T]](val game:T) {
     import game._
 
     protected var locx:Int = game.xsize / 2
@@ -18,7 +18,7 @@ abstract class Controller[T <: Game[T]](val game:T) {
     def turnComplete = doEvent(TurnCompleteEvent())
 
     def addHandler(f:PartialFunction[ControllerEvent, Option[GameEvent]]) {
-        eventHandlers += f
+        eventHandlers = f :: eventHandlers
     }
 
     def doEvent(ev:ControllerEvent) {

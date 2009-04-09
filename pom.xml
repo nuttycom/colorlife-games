@@ -36,6 +36,10 @@
                 <artifactId>maven-scala-plugin</artifactId>
                 <configuration>
                     <mainClass>org.nuttycombe.colorlife.ce.ColonizeEarth</mainClass>
+                    <args>
+                        <arg>-deprecation</arg>
+                        <arg>-unchecked</arg>
+                    </args>
                 </configuration>
                 <executions>
                     <execution>

@@ -8,7 +8,6 @@ import java.awt.Color
 import Math._
 
 class ColonizeEarthGame(xsize:Int, ysize:Int, earthSize:Int) extends Game[ColonizeEarthGame](xsize, ysize) {
-    type GameType = ColonizeEarthGame
     type ControllerType = ColonizeEarthController
 
     class EarthCell(x:Int, y:Int) extends Cell(x,y) {

@@ -6,12 +6,10 @@ package org.nuttycombe.colorlife
 
 import java.awt.Color
 import scala.collection._
-import scala.collection.mutable.Map
+import scala.collection.immutable.Map
 
-abstract class Game[T <: Game[T]](val xsize:Int, val ysize:Int) {
-    self : T =>
-    type GameType <: T
-    type ControllerType <: Controller[GameType]
+abstract class Game[+T <: Game[T]](val xsize:Int, val ysize:Int) {
+    type ControllerType <: Controller[T]
 
     case class Cell(x:Int, y:Int) {
         lazy val neighbors : Seq[Cell] = for (i <- Math.max(0, x-1) until Math.min(x+1, xsize-1);
@@ -23,10 +21,6 @@ abstract class Game[T <: Game[T]](val xsize:Int, val ysize:Int) {
 
         def color = c
         def color_=(c:Color) = {
-            setColor(c)
-        }
-
-        private def setColor(c:Color) = {
             if (c != this.c) {
                 cellsToEvaluate ++= neighbors
                 cellsToEvaluate += this
@@ -40,8 +34,7 @@ abstract class Game[T <: Game[T]](val xsize:Int, val ysize:Int) {
                 Color.BLACK
             } else if (liveNeighbors.size == 3 && c == Color.BLACK) {
                 val colorCounts = liveNeighbors.foldLeft(Map.empty[Color,Int]) {(counts, n) =>
-                    counts.put(n.c, counts.getOrElse(n.c, 0) + 1)
-                    counts
+                    counts + ((n.c, counts.getOrElse(n.c, 0) + 1))
                 }
 
                 if (colorCounts.size < 3) {
@@ -56,8 +49,7 @@ abstract class Game[T <: Game[T]](val xsize:Int, val ysize:Int) {
         }
 
         def evolve = {
-            setColor(this.nextColor)
-            this
+            color = nextColor
         }
     }
 
@@ -65,7 +57,7 @@ abstract class Game[T <: Game[T]](val xsize:Int, val ysize:Int) {
     private var cellsToEvaluate = Set.empty[Cell]
 
     case class CellUpdateEvent(cells: Set[Cell]) extends GameEvent
-    case class TurnCompleteEvent() extends ControllerEvent
+    case class TurnCompleteEvent extends ControllerEvent
 
     def buildInitialCell(x:Int, y:Int):Cell
 
@@ -78,8 +70,9 @@ abstract class Game[T <: Game[T]](val xsize:Int, val ysize:Int) {
     protected def applyLifeRule : Set[Cell] = {
         val evaluated = cellsToEvaluate
         cellsToEvaluate.foreach(_.evaluate)
+        cellsToEvaluate.foreach(_.evolve)
         cellsToEvaluate = Set.empty[Cell]
-        evaluated.map(_.evolve)
+        evaluated
     }
 }
 
