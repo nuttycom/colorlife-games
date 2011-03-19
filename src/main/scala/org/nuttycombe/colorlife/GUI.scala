@@ -5,82 +5,78 @@
 package org.nuttycombe.colorlife
 
 import java.awt._
-import javax.swing._
 import java.awt.event._
+import javax.swing._
 
-trait GUI[T <: Game[T]] extends Controller[T] {
-    type GameType = T
-    type CellFaceType <: CellFace
+trait GUI {
+  val gameTitle: String
+  val xsize: Int
+  val ysize: Int
 
-    object frame extends JFrame("ColorLife Colonize Earth!")
-    object board extends BoardComponent(game)
+  object frame extends JFrame(gameTitle)
+  object board extends JComponent {
+    val cellFaces = for (x <- 0 to xsize; y <- 0 to ysize) yield createCellFace(x, y)
 
+    override def paint(g:Graphics) = for (face <- cellFaces) face.draw(g)
+  }
+
+  def drawBoard = {
     frame.getContentPane.add(board)
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
-    frame.addWindowListener(new WindowAdapter() {
-        override def windowOpened(e:WindowEvent) {
-            frame.setExtendedState(Frame.MAXIMIZED_BOTH)
-        }
-    });
+    frame.addWindowListener(
+      new WindowAdapter() {
+        override def windowOpened(e: WindowEvent) = frame.setExtendedState(Frame.MAXIMIZED_BOTH)
+      }
+    )
 
     //add handlers for key events
-    frame.addKeyListener(new KeyListener {
-            override def keyPressed(ev:KeyEvent) {}
-            override def keyReleased(ev:KeyEvent) {}
-
-            override def keyTyped(ev:KeyEvent) {
-                handleKeyTyped(ev)
-            }
-    });
+    frame.addKeyListener(navigationListener)
 
     //Display the window.
-    frame.pack();
-    frame.setVisible(true);
+    frame.pack()
+    frame.setVisible(true)
+  }
 
-    class BoardComponent(game: GameType) extends JComponent {
-        override def paint(g:Graphics) {
-            val xsize = (frame.getWidth - 20) / game.xsize
-            val ysize = (frame.getHeight - 20) / game.ysize
-            implicit def decorate(cell: game.Cell) = createCellFace(xsize, ysize, cell);
+  private var _userx = 0
+  private var _usery = 0
+  def userx = _userx
+  def usery = _usery
 
-            game.cells.foreach(_.foreach(_.draw(g)))
-        }
+  def cellWidth = (frame.getWidth - 20) / xsize
+  def cellHeight = (frame.getHeight - 20) / ysize
+
+  class CellFace(val x: Int, val y: Int, var color: Color = Color.BLACK) {
+    val xloc = x * cellWidth
+    val yloc = y * cellHeight
+    val borderColor: Color = frame.getBackground
+
+    def draw(g:Graphics) = drawCell(g, borderColor, color)
+
+    final def drawCell(g: Graphics, outline : Color, fill : Color) {
+      val highlighted = x == userx && y == usery
+      g.setColor(if (highlighted) fill else outline)
+      g.drawRoundRect(xloc, yloc, cellWidth - 1, cellHeight - 1, 3, 3)
+      g.setColor(if (highlighted) outline else fill)
+      g.fillRoundRect(xloc + 1, yloc + 1, cellWidth - 2, cellHeight - 2, 3, 3)
     }
+  }
 
-    class CellFace(xsize: Int, ysize: Int, cell: GameType#Cell) {
-        import cell._
-        val xloc = x * xsize
-        val yloc = y * ysize
-        val borderColor: Color = frame.getBackground
+  def createCellFace(x: Int, y: Int): CellFace
 
-        def draw(g:Graphics) {
-            drawCell(g, borderColor, cell.color)
-        }
-
-        final def drawCell(g: Graphics, outline : Color, fill : Color) {
-            g.setColor(if (highlight) fill else outline)
-            g.drawRoundRect(xloc, yloc, xsize - 1, ysize - 1, 3, 3)
-            g.setColor(if (highlight) outline else fill)
-            g.fillRoundRect(xloc + 1, yloc + 1, xsize - 2, ysize - 2, 3, 3)
-        }
-
-        private def highlight = x == locx && y == locy
+  val navigationListener = new KeyListener {
+    override def keyPressed(ev:KeyEvent)  = ()
+    override def keyReleased(ev:KeyEvent) = ()
+    override def keyTyped(ev:KeyEvent) = ev.getKeyChar match {
+      case 'j'  => refresh(_usery = (usery + 1) % ysize)
+      case 'k'  => refresh(_usery = (usery - 1) % ysize)
+      case 'h'  => refresh(_userx = (userx - 1) % xsize)
+      case 'l'  => refresh(_userx = (userx + 1) % xsize)
     }
+  }
 
-    def createCellFace(xsize: Int, ysize: Int, cell: GameType#Cell): CellFaceType
-
-    def handleKeyTyped(ev:KeyEvent) {
-        ev.getKeyChar match {
-            case 'j' => changeActiveCell(moveLocDown _)
-            case 'k' => changeActiveCell(moveLocUp _)
-            case 'h' => changeActiveCell(moveLocLeft _)
-            case 'l' => changeActiveCell(moveLocRight _)
-            case '\r' => turnComplete
-        }
-    }
-
-    private def changeActiveCell(f: () => Unit) {
-        f()
-        board.repaint()
-    }
+  def refresh[T](f: => T): T = {
+    val result = f;
+    board.repaint()
+    result
+  }
 }
