@@ -41,17 +41,22 @@ object ColonizeEarth extends Life2DToroidal with ColorLife with GUI {
     (0 until playerCount).map(getPlayer).toList
   }
 
-  @tailrec def play(players: List[Player], pop: Population): Population = {
+  @tailrec def play(players: List[Player], pop: Population): Unit = {
     winner(players, pop) match {
-      case Some(w) => pop
-      case None => play(players, updateCells(generation(cycle(players.map(v => (random, v)).sortBy(_._1).map(_._2), pop))))
+      case Some(w) =>
+        if (JOptionPane.showConfirmDialog(board, "Player " + w.name + " has won! Play again?") == JOptionPane.OK_OPTION) {
+          play(players, cycle(players.map(v => (random, v)).sortBy(_._1).map(_._2), updateCells(Map())))
+        }
+
+      case None    =>
+        play(players, cycle(players.map(v => (random, v)).sortBy(_._1).map(_._2), pop))
     }
   }
 
   @tailrec def cycle(players: List[Player], pop: Population): Population = {
     players match {
       case p :: xs => cycle(xs, p.turn(pop))
-      case Nil => pop
+      case Nil     => updateCells(generation(pop))
     }
   }
 
@@ -64,7 +69,11 @@ object ColonizeEarth extends Life2DToroidal with ColorLife with GUI {
     ).toSet
   }
 
-  def inExclusionZone(x: Int, y: Int) = abs(x - xcenter) <= (earthHalfWidth + 1) && abs(y - ycenter) <= (earthHalfWidth + 1)
+  def inExclusionZone(x: Int, y: Int) = {
+    val exclusionHalfWidth = earthHalfWidth + 1
+    (xcenter - exclusionHalfWidth <= x && xcenter + exclusionHalfWidth > x) &&
+    (ycenter - exclusionHalfWidth <= y && ycenter + exclusionHalfWidth > y)
+  }
 
   def defaultColor(x: Int, y: Int) = if (earthLocations.contains((x, y))) Color.WHITE else Color.BLACK
 
@@ -77,7 +86,7 @@ object ColonizeEarth extends Life2DToroidal with ColorLife with GUI {
 
   def winner(players: List[Player], pop: Population): Option[Player] = {
     val earthColors = pop.filterKeys(earthLocations).values.toSet
-    if (earthColors.size == 1 && earthLocations.count(pop.contains(_)) > (earthSize * 0.66)) players.find(_.color == earthColors.head) else None
+    if (earthColors.size == 1 && earthLocations.count(pop.contains(_)) > (earthSize * earthSize * 0.66)) players.find(_.color == earthColors.head) else None
   }
 
   case class Player(name: String, color: Color) {
