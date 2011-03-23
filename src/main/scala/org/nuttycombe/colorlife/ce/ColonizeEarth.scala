@@ -27,6 +27,7 @@ object ColonizeEarth extends Life2DToroidal with ColorLife with GUI {
   def main(argv: Array[String]) {
     drawBoard
     play(getPlayers, Map())
+    exit
   }
 
   def getPlayers : List[Player] = {
@@ -60,20 +61,16 @@ object ColonizeEarth extends Life2DToroidal with ColorLife with GUI {
     }
   }
 
-  val earthLocations: Set[Location] = {
-    (
-      for {
-        x <- round(xcenter - earthHalfWidth) until round(xcenter + earthHalfWidth)
-        y <- round(ycenter - earthHalfWidth) until round(ycenter + earthHalfWidth)
-      } yield (x, y)
-    ).toSet
-  }
+  val earthLocations: Set[Location] = (for {
+    x <- round(xcenter - earthHalfWidth) until round(xcenter + earthHalfWidth)
+    y <- round(ycenter - earthHalfWidth) until round(ycenter + earthHalfWidth)
+  } yield (x, y)).toSet
 
-  def inExclusionZone(x: Int, y: Int) = {
-    val exclusionHalfWidth = earthHalfWidth + 1
-    (xcenter - exclusionHalfWidth <= x && xcenter + exclusionHalfWidth > x) &&
-    (ycenter - exclusionHalfWidth <= y && ycenter + exclusionHalfWidth > y)
-  }
+  private val exclMinX = xcenter - (earthHalfWidth + 2)
+  private val exclMaxX = xcenter + (earthHalfWidth + 1)
+  private val exclMinY = ycenter - (earthHalfWidth + 2)
+  private val exclMaxY = ycenter + (earthHalfWidth + 1)
+  def inExclusionZone(x: Int, y: Int) = exclMinX < x && exclMaxX > x && exclMinY < y && exclMaxY > y
 
   def defaultColor(x: Int, y: Int) = if (earthLocations.contains((x, y))) Color.WHITE else Color.BLACK
 
@@ -86,7 +83,7 @@ object ColonizeEarth extends Life2DToroidal with ColorLife with GUI {
 
   def winner(players: List[Player], pop: Population): Option[Player] = {
     val earthColors = pop.filterKeys(earthLocations).values.toSet
-    if (earthColors.size == 1 && earthLocations.count(pop.contains(_)) > (earthSize * earthSize * 0.66)) players.find(_.color == earthColors.head) else None
+    if (earthColors.size == 1 && earthLocations.count(pop.contains(_)) > (earthSize * earthSize * 0.5)) players.find(_.color == earthColors.head) else None
   }
 
   case class Player(name: String, color: Color) {
