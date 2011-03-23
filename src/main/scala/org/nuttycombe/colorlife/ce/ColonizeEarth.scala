@@ -44,7 +44,7 @@ object ColonizeEarth extends Life2DToroidal with ColorLife with GUI {
   @tailrec def play(players: List[Player], pop: Population): Population = {
     winner(players, pop) match {
       case Some(w) => pop
-      case None => play(players, generation(cycle(players.map(v => (random, v)).sortBy(_._1).map(_._2), pop)))
+      case None => play(players, updateCells(generation(cycle(players.map(v => (random, v)).sortBy(_._1).map(_._2), pop))))
     }
   }
 
@@ -64,13 +64,20 @@ object ColonizeEarth extends Life2DToroidal with ColorLife with GUI {
     ).toSet
   }
 
-  def inExclusionZone(x: Int, y: Int) = abs(x - xcenter) < (earthHalfWidth + 1) && abs(y - ycenter) < (earthHalfWidth + 1)
+  def inExclusionZone(x: Int, y: Int) = abs(x - xcenter) <= (earthHalfWidth + 1) && abs(y - ycenter) <= (earthHalfWidth + 1)
 
-  override def createCellFace(x: Int, y: Int) = if (earthLocations.contains((x, y))) new CellFace(x, y, Color.WHITE) else new CellFace(x, y)
+  def defaultColor(x: Int, y: Int) = if (earthLocations.contains((x, y))) Color.WHITE else Color.BLACK
+
+  override def createCellFace(x: Int, y: Int) = new CellFace(x, y, defaultColor(x, y))
+
+  def updateCells(pop: Population): Population = refresh({
+    for ((loc @ (x, y), face) <- cellFaces) face.color = pop.getOrElse(loc, defaultColor(x, y))
+    pop
+  })
 
   def winner(players: List[Player], pop: Population): Option[Player] = {
     val earthColors = pop.filterKeys(earthLocations).values.toSet
-    if (earthColors.size == 1) players.find(_.color == earthColors.head) else None
+    if (earthColors.size == 1 && earthLocations.count(pop.contains(_)) > (earthSize * 0.66)) players.find(_.color == earthColors.head) else None
   }
 
   case class Player(name: String, color: Color) {
@@ -80,51 +87,67 @@ object ColonizeEarth extends Life2DToroidal with ColorLife with GUI {
 
     def turn(pop: Population): Population = {
       if (journeyRemaining > 0) {
+        JOptionPane.showMessageDialog(board, name + " is on a journey and has " + journeyRemaining + " turns left before it gets back.")
         journeyRemaining -= 1
         pop
       } else if (journeyLength > 0) {
         seeds += pow(2, journeyLength).toInt
         journeyLength = 0
-        pop
+        JOptionPane.showMessageDialog(board, name + " is back from its journey and has " + seeds + " spores to deploy!")
+        interact(pop)
       } else {
+        JOptionPane.showMessageDialog(board, "Starting turn for player " + name + " with " + seeds + " spores available.")
+        interact(pop)
+      }
+    }
+
+    def interact(pop: Population): Population = {
         var turnComplete = false
         var population = pop
 
         val keyListener = new KeyListener {
           def endTurn = {
-            board.removeKeyListener(this)
-            turnComplete = true
-            Player.this.notifyAll
+            frame.removeKeyListener(this)
+            Player.this.synchronized {
+              turnComplete = true
+              Player.this.notifyAll
+            }
           }
 
           override def keyPressed(ev:KeyEvent)  = ()
           override def keyReleased(ev:KeyEvent) = ()
           override def keyTyped(ev:KeyEvent) = ev.getKeyChar match {
-            case ' ' if seeds > 0 && !pop.contains((userx, usery)) && !inExclusionZone(userx, usery) =>
-              seeds -= 1
-              population = pop + ((userx, usery) -> color)
+            case ' ' =>
+              if (seeds > 0) {
+                if (!population.contains((userx, usery)) && !inExclusionZone(userx, usery)) {
+                  seeds -= 1
+                  population = population + ((userx, usery) -> color)
+                  refresh(cellFaces(userx, usery).color = color)
+                }
+              } else {
+                JOptionPane.showMessageDialog(board, "You don't have any seeds, better go find some!")
+              }
 
-            case n if (1 until 8).contains(n.asDigit) => 
-              journeyLength = n
-              journeyRemaining = n
+            case n if n.isDigit =>
+              journeyLength = n.asDigit
+              journeyRemaining = n.asDigit
               endTurn
 
-            case '\r' =>
-              endTurn
+            case '\n' | '\r' =>
+              if (JOptionPane.showConfirmDialog(board, "Done with your turn?", "Turn Complete!", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
+                endTurn
+              }
 
-            case _ => ()
+            case x => ()
           }
         }
 
-        board.addKeyListener(keyListener)
+        frame.addKeyListener(keyListener)
         this.synchronized {
-          while (!turnComplete) {
-            this.wait
-          }
+          while (!turnComplete) Player.this.wait;
         }
 
         population
-      }
     }
   }
 }

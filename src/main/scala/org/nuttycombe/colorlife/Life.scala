@@ -35,7 +35,7 @@ trait Life {
 trait Life2D extends Life {
   type Location = (Int, Int)
 
-  val dxy = (for (dx <- 1 to 1; dy <- 1 to 1 if !(dx == 0 && dy == 0)) yield (dx, dy)).toSet
+  val dxy = (for (dx <- -1 to 1; dy <- -1 to 1 if !(dx == 0 && dy == 0)) yield (dx, dy)).toSet
 
   override def willLive(now: Boolean, n: Int) = ((now && n == 2) || n == 3)
 }
@@ -57,11 +57,12 @@ trait Life2DToroidal extends Life2D {
 
 object ColorLife {
   def blend(colors : Iterable[java.awt.Color]) = {
-    val rgb = colors.foldLeft((0.0f, 0.0f, 0.0f)) {(sum, c) =>
-      (sum._1 + c.getRed(), sum._2 + c.getGreen(), sum._3 + c.getBlue())
+    colors.foldLeft((0, 0, 0)) {
+      case ((r, g, b), c) => (r + c.getRed(), g + c.getGreen(), b + c.getBlue())
+    } match {
+      case (r, g, b) => 
+        new java.awt.Color(r / colors.size, g / colors.size, b / colors.size)
     }
-
-    new java.awt.Color(rgb._1 / colors.size, rgb._2 / colors.size, rgb._3 / colors.size)
   }
 }
 

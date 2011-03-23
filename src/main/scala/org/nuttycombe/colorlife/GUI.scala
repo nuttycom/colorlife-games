@@ -13,11 +13,13 @@ trait GUI {
   val xsize: Int
   val ysize: Int
 
+  lazy val cellFaces = (for (x <- 0 to xsize; y <- 0 to ysize) yield ((x, y), createCellFace(x, y))).toMap
+
   object frame extends JFrame(gameTitle)
   object board extends JComponent {
-    val cellFaces = for (x <- 0 to xsize; y <- 0 to ysize) yield createCellFace(x, y)
-
-    override def paint(g:Graphics) = for (face <- cellFaces) face.draw(g)
+    override def paint(g:Graphics) = for (face <- cellFaces.values) {
+      face.draw(g)
+    }
   }
 
   def drawBoard = {
@@ -37,8 +39,8 @@ trait GUI {
     frame.setVisible(true)
   }
 
-  private var _userx = 0
-  private var _usery = 0
+  private var _userx: Int = xsize / 2
+  private var _usery: Int = ysize / 2
   def userx = _userx
   def usery = _usery
 
@@ -46,14 +48,15 @@ trait GUI {
   def cellHeight = (frame.getHeight - 20) / ysize
 
   class CellFace(val x: Int, val y: Int, var color: Color = Color.BLACK) {
-    val xloc = x * cellWidth
-    val yloc = y * cellHeight
     val borderColor: Color = frame.getBackground
 
     def draw(g:Graphics) = drawCell(g, borderColor, color)
 
     final def drawCell(g: Graphics, outline : Color, fill : Color) {
+      val xloc = x * cellWidth
+      val yloc = y * cellHeight
       val highlighted = x == userx && y == usery
+
       g.setColor(if (highlighted) fill else outline)
       g.drawRoundRect(xloc, yloc, cellWidth - 1, cellHeight - 1, 3, 3)
       g.setColor(if (highlighted) outline else fill)
@@ -71,6 +74,7 @@ trait GUI {
       case 'k'  => refresh(_usery = (usery - 1) % ysize)
       case 'h'  => refresh(_userx = (userx - 1) % xsize)
       case 'l'  => refresh(_userx = (userx + 1) % xsize)
+      case _ => ()
     }
   }
 
